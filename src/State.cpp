@@ -1,25 +1,72 @@
 #include "State.h"
 #include <SDL2/SDL.h>
+#include "GameObject.h"
+#include "SpriteRenderer.h"
+#include "Zombie.h"
+#include "Animator.h"
 
-State::State() : bg("recursos/img/Background.png"), music("recursos/audio/BGM.wav") { // bg aberto com img/Background.png e música com audio/BGM.wav [cite: 260, 286]
-    quitRequested = false; // Inicializa quitRequested [cite: 166]
-    music.Play(-1); // A música deve começar a tocar na criação do estado [cite: 287]
+// O construtor inicializa a música e cria nossos primeiros objetos [cite: 718-721, 738-739]
+State::State() : music("recursos/audio/BGM.wav") {
+    quitRequested = false;
+    music.Play(-1);
+
+    // 1. Criando o Background 
+    GameObject* bgObj = new GameObject(); 
+    SpriteRenderer* bgSprite = new SpriteRenderer(*bgObj, "recursos/img/Background.png"); 
+    bgObj->AddComponent(bgSprite); 
+    AddObject(bgObj); 
+
+    // 2. Criando o Zumbi 
+    GameObject* zombieObj = new GameObject(); 
+    zombieObj->box.x = 600; 
+    zombieObj->box.y = 450;
+    Zombie* zombieComp = new Zombie(*zombieObj); // O próprio Zombie já cria seu SpriteRederer e Animator internamente
+    zombieObj->AddComponent(zombieComp);
+    AddObject(zombieObj);
 }
 
+// Destrutor limpa o array de ponteiros inteligentes [cite: 611]
+State::~State() {
+    objectArray.clear(); 
+}
+
+// Adiciona um novo GameObject ao final do vetor [cite: 622]
+void State::AddObject(GameObject* go) {
+    objectArray.emplace_back(go); 
+}
+
+// Método vazio por enquanto
 void State::LoadAssets() {
-    // Por enquanto deixaremos vazio conforme as instruções de apenas carregar variáveis quando possível [cite: 168, 169]
 }
 
+// Atualiza a lógica do estado
 void State::Update(float dt) {
     if (SDL_QuitRequested()) {
-        quitRequested = true; // Se o retorno dela for true, sete a flag para true [cite: 175]
+        quitRequested = true;
+    }
+
+    // Atualiza todos os objetos da cena [cite: 613]
+    for (unsigned i = 0; i < objectArray.size(); i++) {
+        objectArray[i]->Update(dt);
+    }
+
+    // Remove objetos mortos varrendo o array de trás para frente [cite: 614-616]
+    for (int i = objectArray.size() - 1; i >= 0; i--) {
+        if (objectArray[i]->IsDead()) {
+            objectArray.erase(objectArray.begin() + i); 
+        }
     }
 }
 
+// Renderiza a cena
 void State::Render() {
-    bg.Render(0, 0); // Chame o render do fundo (bg) passando (0,0) [cite: 178]
+    // Percorre o array chamando a função Render de todos os objetos [cite: 618]
+    for (unsigned i = 0; i < objectArray.size(); i++) {
+        objectArray[i]->Render();
+    }
 }
 
+// Informa ao Game Loop se deve encerrar o jogo
 bool State::QuitRequested() {
-    return quitRequested; // Retorna o valor da flag de mesmo nome [cite: 180]
+    return quitRequested;
 }

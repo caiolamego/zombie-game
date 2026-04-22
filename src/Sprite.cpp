@@ -3,44 +3,40 @@
 #include <SDL2/SDL_image.h>
 #include <iostream>
 
-Sprite::Sprite() {
-    texture = nullptr; // Seta texture como nullptr [cite: 217]
+Sprite::Sprite() : texture(nullptr), frameCountW(1), frameCountH(1) {
 }
 
-Sprite::Sprite(std::string file) {
-    texture = nullptr;
-    Open(file); // Em seguida, chama Open [cite: 219]
+Sprite::Sprite(std::string file, int frameCountW, int frameCountH) 
+    : texture(nullptr), frameCountW(frameCountW), frameCountH(frameCountH) {
+    Open(file);
 }
 
 Sprite::~Sprite() {
     if (texture != nullptr) {
-        SDL_DestroyTexture(texture); // Desaloca a textura [cite: 221]
+        SDL_DestroyTexture(texture);
     }
 }
 
 void Sprite::Open(std::string file) {
     if (texture != nullptr) {
-        SDL_DestroyTexture(texture); // Se já houver imagem carregada, deve ser desalocada primeiro [cite: 223]
+        SDL_DestroyTexture(texture);
     }
     
-    // Carrega a textura usando o renderizador de Game [cite: 224, 226]
     texture = IMG_LoadTexture(Game::GetInstance().GetRenderer(), file.c_str());
     if (texture == nullptr) {
         std::cout << "Erro ao carregar textura: " << SDL_GetError() << std::endl;
     }
     
-    // Obtém as dimensões da textura [cite: 230, 233]
     SDL_QueryTexture(texture, nullptr, nullptr, &width, &height);
-    
-    // Seta o clip com as dimensões da imagem [cite: 234]
-    SetClip(0, 0, width, height);
+
+    SetFrame(0);
 }
 
 void Sprite::SetClip(int x, int y, int w, int h) {
     clipRect.x = x;
     clipRect.y = y;
     clipRect.w = w;
-    clipRect.h = h; // Seta clipRect com os parâmetros dados [cite: 236]
+    clipRect.h = h;
 }
 
 void Sprite::Render(int x, int y) {
@@ -48,20 +44,33 @@ void Sprite::Render(int x, int y) {
     dstrect.x = x;
     dstrect.y = y;
     dstrect.w = clipRect.w;
-    dstrect.h = clipRect.h; // weh assumem os valores contidos no clipRect [cite: 255]
+    dstrect.h = clipRect.h;
     
-    // Wrapper para SDL_RenderCopy [cite: 238]
     SDL_RenderCopy(Game::GetInstance().GetRenderer(), texture, &clipRect, &dstrect);
 }
 
+void Sprite::SetFrameCount(int frameCountW, int frameCountH) {
+    this->frameCountW = frameCountW;
+    this->frameCountH = frameCountH;
+}
+
+void Sprite::SetFrame(int frame) {
+    int currentColumn = frame % frameCountW;
+    int currentRow = frame / frameCountW;
+    int frameWidth = GetWidth();
+    int frameHeight = GetHeight();
+
+    SetClip(currentColumn * frameWidth, currentRow * frameHeight, frameWidth, frameHeight);
+}
+
 int Sprite::GetWidth() {
-    return width; // Retorna as dimensões da imagem [cite: 257]
+    return width / frameCountW; 
 }
 
 int Sprite::GetHeight() {
-    return height; // Retorna as dimensões da imagem [cite: 257]
+    return height / frameCountH;
 }
 
 bool Sprite::IsOpen() {
-    return texture != nullptr; // Retorna true se texture estiver alocada [cite: 259]
+    return texture != nullptr;
 }
