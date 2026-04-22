@@ -1,6 +1,7 @@
 #include "Sprite.h"
 #include "Game.h"
-#include <SDL2/SDL_image.h>
+#define INCLUDE_SDL_IMAGE
+#include "SDL_include.h"
 #include <iostream>
 
 Sprite::Sprite() : texture(nullptr), frameCountW(1), frameCountH(1) {

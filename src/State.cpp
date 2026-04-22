@@ -1,5 +1,6 @@
 #include "State.h"
-#include <SDL2/SDL.h>
+#define INCLUDE_SDL
+#include "SDL_include.h"
 #include "GameObject.h"
 #include "SpriteRenderer.h"
 #include "Zombie.h"

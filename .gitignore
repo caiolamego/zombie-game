@@ -1,1 +1,12 @@
+# Executáveis
+JOGO
 JogoIDJ
+*.exe
+
+# Pastas geradas pelo Makefile (Arquivos .o e .d)
+bin/
+dep/
+
+# Arquivos de sistema operacional (Evita lixo do Mac/Windows)
+.DS_Store
+Thumbs.db

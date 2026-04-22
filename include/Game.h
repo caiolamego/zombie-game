@@ -1,5 +1,6 @@
 #pragma once
-#include <SDL2/SDL.h>
+#define INCLUDE_SDL
+#include "SDL_include.h"
 #include <string>
 #include "State.h"
 
