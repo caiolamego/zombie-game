@@ -2,7 +2,7 @@
 #include "GameObject.h"
 #include <fstream>
 #include <sstream>
-#include <algorithm> // Necessário para a mágica do std::replace do projeto SS
+#include <algorithm>
 #include <iostream>
 
 TileMap::TileMap(GameObject& associated, std::string file, TileSet* tileSet) 
@@ -15,7 +15,6 @@ void TileMap::SetTileSet(TileSet* tileSet) {
     this->tileSet.reset(tileSet); 
 }
 
-// O Leitor Blindado Baseado no Projeto SS
 void TileMap::Load(std::string file) {
     tileMatrix.clear();
     mapWidth = mapHeight = mapDepth = 0;
@@ -26,36 +25,27 @@ void TileMap::Load(std::string file) {
         return;
     }
 
-    // Lê o arquivo inteiro para a memória de uma vez só
+    // Lê tudo para a memória e limpa a sujeira do Windows
     std::string content((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
-    
-    // Substitui absolutamente todas as vírgulas por espaços
     std::replace(content.begin(), content.end(), ',', ' ');
-    
-    // Passa a string limpa para o extrator
     std::stringstream ss(content);
 
-    // O extrator lê as 3 primeiras variáveis pulando qualquer lixo invisível
     ss >> mapWidth >> mapHeight >> mapDepth;
-    
     if (!ss || mapWidth <= 0 || mapHeight <= 0 || mapDepth <= 0) {
         std::cout << "TileMap: cabecalho invalido." << std::endl;
         mapWidth = mapHeight = mapDepth = 0;
         return;
     }
 
-    // Otimização de memória aprendida no projeto SS
     const int total = mapWidth * mapHeight * mapDepth;
     tileMatrix.reserve(total);
 
     int v;
-    // Laço a prova de balas que não escorrega o array
+    // Sem subtrair 1! Lê o index real exportado pelo mapa
     while (ss >> v) {
-        // Subtraímos 1 para o TileD 0 virar espaço vazio (-1)
-        tileMatrix.push_back(v - 1);
+        tileMatrix.push_back(v);
     }
 
-    // Failsafe do projeto SS: Se o Tiled exportar faltando peças, preenche com vazio (-1)
     if ((int)tileMatrix.size() < total) {
         tileMatrix.resize(total, -1);
     } else if ((int)tileMatrix.size() > total) {
@@ -64,12 +54,13 @@ void TileMap::Load(std::string file) {
 }
 
 int& TileMap::At(int x, int y, int z) {
-    // Fórmula de achatamento
+    static int dummy = -1;
+    if (x < 0 || y < 0 || z < 0 || x >= mapWidth || y >= mapHeight || z >= mapDepth) return dummy;
+    // Fórmula de planificação 3D para 1D
     return tileMatrix[x + (y * mapWidth) + (z * mapWidth * mapHeight)];
 }
 
 void TileMap::RenderLayer(int layer) {
-    // Se a layer pedida for inválida, sai da função
     if (!tileSet || layer < 0 || layer >= mapDepth) return;
 
     int tw = tileSet->GetTileWidth();
@@ -79,7 +70,7 @@ void TileMap::RenderLayer(int layer) {
         for (int x = 0; x < mapWidth; ++x) {
             int index = At(x, y, layer);
             
-            // Só renderiza se for um tile válido (maior ou igual a 0)
+            // Só renderiza tiles válidos
             if (index >= 0) { 
                 float sx = associated.box.x + x * tw;
                 float sy = associated.box.y + y * th;
