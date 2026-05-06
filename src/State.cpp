@@ -5,23 +5,28 @@
 #include "SpriteRenderer.h"
 #include "Zombie.h"
 #include "Animator.h"
+#include "TileSet.h"
+#include "TileMap.h"
 
 // O construtor inicializa a música e cria nossos primeiros objetos [cite: 718-721, 738-739]
 State::State() : music("recursos/audio/BGM.wav") {
     quitRequested = false;
     music.Play(-1);
 
-    // 1. Criando o Background 
-    GameObject* bgObj = new GameObject(); 
-    SpriteRenderer* bgSprite = new SpriteRenderer(*bgObj, "recursos/img/Background.png"); 
-    bgObj->AddComponent(bgSprite); 
-    AddObject(bgObj); 
+    // 1. Criando o Mapa (TileSet e TileMap)
+    GameObject* mapObj = new GameObject();
+    mapObj->box.x = 0;
+    mapObj->box.y = 0;
+    TileSet* tileSet = new TileSet(64, 64, "recursos/img/Tileset.png");
+    TileMap* tileMap = new TileMap(*mapObj, "recursos/map/map.txt", tileSet);
+    mapObj->AddComponent(tileMap);
+    AddObject(mapObj); // Adicionado primeiro para desenhar o fundo antes dos personagens
 
-    // 2. Criando o Zumbi 
+    // 2. Criando o Zumbi (Pode criar mais de um agora que temos Cache de texturas!)
     GameObject* zombieObj = new GameObject(); 
     zombieObj->box.x = 600; 
     zombieObj->box.y = 450;
-    Zombie* zombieComp = new Zombie(*zombieObj); // O próprio Zombie já cria seu SpriteRederer e Animator internamente
+    Zombie* zombieComp = new Zombie(*zombieObj);
     zombieObj->AddComponent(zombieComp);
     AddObject(zombieObj);
 }

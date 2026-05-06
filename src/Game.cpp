@@ -3,6 +3,7 @@
 #define INCLUDE_SDL_MIXER
 #include "SDL_include.h"
 #include <iostream>
+#include "Resources.h"
 
 Game* Game::instance = nullptr;
 
@@ -66,9 +67,18 @@ SDL_Renderer* Game::GetRenderer() {
 
 void Game::Run() {
     while (!state->QuitRequested()) {
-        state->Update(0);
-        state->Render();
-        SDL_RenderPresent(renderer);
-        SDL_Delay(33);
+        state->Update(0); 
+        
+        // LIMPA A TELA DE PRETO ANTES DE DESENHAR TUDO
+        SDL_RenderClear(renderer); 
+        
+        state->Render(); 
+        SDL_RenderPresent(renderer); 
+        SDL_Delay(33); 
     }
+    
+    // Libera a memória quando o loop encerra (Resource Management do Trabalho 3)
+    Resources::ClearImages();
+    Resources::ClearMusics();
+    Resources::ClearSounds();
 }
