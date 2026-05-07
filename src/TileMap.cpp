@@ -4,6 +4,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+#include "Camera.h"
 
 TileMap::TileMap(GameObject& associated, std::string file, TileSet* tileSet) 
     : Component(associated) {
@@ -41,7 +42,6 @@ void TileMap::Load(std::string file) {
     tileMatrix.reserve(total);
 
     int v;
-    // Sem subtrair 1! Lê o index real exportado pelo mapa
     while (ss >> v) {
         tileMatrix.push_back(v);
     }
@@ -56,24 +56,22 @@ void TileMap::Load(std::string file) {
 int& TileMap::At(int x, int y, int z) {
     static int dummy = -1;
     if (x < 0 || y < 0 || z < 0 || x >= mapWidth || y >= mapHeight || z >= mapDepth) return dummy;
-    // Fórmula de planificação 3D para 1D
     return tileMatrix[x + (y * mapWidth) + (z * mapWidth * mapHeight)];
 }
 
 void TileMap::RenderLayer(int layer) {
     if (!tileSet || layer < 0 || layer >= mapDepth) return;
-
     int tw = tileSet->GetTileWidth();
     int th = tileSet->GetTileHeight();
+
+    float parallaxFactor = 1.0f + (layer * 0.5f); 
 
     for (int y = 0; y < mapHeight; ++y) {
         for (int x = 0; x < mapWidth; ++x) {
             int index = At(x, y, layer);
-            
-            // Só renderiza tiles válidos
             if (index >= 0) { 
-                float sx = associated.box.x + x * tw;
-                float sy = associated.box.y + y * th;
+                float sx = associated.box.x + x * tw - (Camera::GetInstance().pos.x * parallaxFactor);
+                float sy = associated.box.y + y * th - (Camera::GetInstance().pos.y * parallaxFactor);
                 tileSet->RenderTile((unsigned)index, sx, sy);
             }
         }
