@@ -4,6 +4,7 @@
 #include "SDL_include.h"
 #include <iostream>
 #include "Resources.h"
+#include "InputManager.h"
 
 Game* Game::instance = nullptr;
 
@@ -66,19 +67,30 @@ SDL_Renderer* Game::GetRenderer() {
 }
 
 void Game::Run() {
+    state->LoadAssets();
+
     while (!state->QuitRequested()) {
-        state->Update(0); 
+        CalculateDeltaTime(); // Calcula o tempo que passou
         
-        // LIMPA A TELA DE PRETO ANTES DE DESENHAR TUDO
-        SDL_RenderClear(renderer); 
+        InputManager::GetInstance().Update(); // Atualiza teclado e mouse
         
-        state->Render(); 
-        SDL_RenderPresent(renderer); 
-        SDL_Delay(33); 
+        state->Update(dt); // Agora o update recebe o tempo real
+        
+        SDL_RenderClear(renderer);
+        state->Render();
+        SDL_RenderPresent(renderer);
+        
+        SDL_Delay(33);
     }
-    
-    // Libera a memória quando o loop encerra (Resource Management do Trabalho 3)
     Resources::ClearImages();
     Resources::ClearMusics();
     Resources::ClearSounds();
+}
+
+
+void Game::CalculateDeltaTime() {
+    unsigned int current = SDL_GetTicks();
+    unsigned int diff = current - frameStart;
+    dt = (float)diff / 1000.0f;
+    frameStart = current;
 }
