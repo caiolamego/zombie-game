@@ -10,3 +10,5 @@ dep/
 # Arquivos de sistema operacional (Evita lixo do Mac/Windows)
 .DS_Store
 Thumbs.db
+
+*.zip

@@ -5,6 +5,9 @@
 #include "Zombie.h"
 #include "Animator.h"
 #include "TileMap.h"
+#include "TileSet.h"
+#include "Camera.h"
+#include "InputManager.h"
 
 State::State() : music("recursos/audio/BGM.wav") {
     quitRequested = false;
@@ -13,6 +16,7 @@ State::State() : music("recursos/audio/BGM.wav") {
     // 1. Criando o Background (MUITO IMPORTANTE para o mar aparecer)
     GameObject* bgObj = new GameObject(); 
     SpriteRenderer* bgSprite = new SpriteRenderer(*bgObj, "recursos/img/Background.png"); 
+    bgSprite->SetCameraFollower(true);
     bgObj->AddComponent(bgSprite); 
     AddObject(bgObj); 
 
@@ -46,17 +50,38 @@ void State::LoadAssets() {
 }
 
 void State::Update(float dt) {
-    if (SDL_QuitRequested()) {
+    Camera::GetInstance().Update(dt); // Move a câmera
+
+    auto& im = InputManager::GetInstance();
+    
+    // Sair no ESC ou no X da janela
+    if (im.QuitRequested() || im.KeyPress(ESCAPE_KEY)) {
         quitRequested = true;
+        return;
     }
 
-    for (unsigned i = 0; i < objectArray.size(); i++) {
+    // Criar zumbi no Espaço na coordenada global do mapa
+    if (im.KeyPress(SDLK_SPACE)) {
+        int worldX = im.GetMouseX() + (int)Camera::GetInstance().pos.x;
+        int worldY = im.GetMouseY() + (int)Camera::GetInstance().pos.y;
+        
+        GameObject* go = new GameObject();
+        go->box.x = (float)worldX;
+        go->box.y = (float)worldY;
+        Zombie* zc = new Zombie(*go);
+        go->AddComponent(zc);
+        AddObject(go);
+    }
+
+    for (size_t i = 0; i < objectArray.size(); ++i) {
         objectArray[i]->Update(dt);
     }
 
-    for (int i = objectArray.size() - 1; i >= 0; i--) {
+    for (size_t i = 0; i < objectArray.size(); ) {
         if (objectArray[i]->IsDead()) {
-            objectArray.erase(objectArray.begin() + i); 
+            objectArray.erase(objectArray.begin() + i);
+        } else {
+            ++i;
         }
     }
 }
