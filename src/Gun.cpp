@@ -7,6 +7,7 @@
 #include "Bullet.h"
 #include "Game.h"
 #include "State.h"
+#include "Character.h"
 #include <cmath>
 
 Gun::Gun(GameObject& associated, std::weak_ptr<GameObject> ch)
@@ -41,7 +42,6 @@ void Gun::Update(float dt) {
   Vec2 dir(std::cos(angle), std::sin(angle));
 
   // Ponto base: centro do corpo + pequena queda para alinhar nas mãos
-  // (ajuste fino: handDrop; dependendo do seu sprite 6~10 fica bom)
   const float handDrop = 8.0f;
   Vec2 base = ch->box.Center();
   base.y += handDrop;
@@ -89,25 +89,33 @@ void Gun::Update(float dt) {
 
 
 void Gun::Shoot(Vec2 target) {
-  if (cooldownState != 0) return;
+    if (cooldownState != 0) return;
 
-  Vec2 center = associated.box.Center();
-  Vec2 to = target - center;
-  angle = std::atan2(to.y, to.x);
+    Vec2 center = associated.box.Center();
+    Vec2 to = target - center;
+    angle = std::atan2(to.y, to.x);
 
-  if (shotSound.IsOpen()) shotSound.Play(1);
+    if (shotSound.IsOpen()) shotSound.Play(1);
 
-  // Posição de spawn no cano
-  const float muzzleOff = 28.0f;
-  Vec2 dir(std::cos(angle), std::sin(angle));
-  Vec2 spawn = center + dir * muzzleOff;
+    const float muzzleOff = 28.0f;
+    Vec2 dir(std::cos(angle), std::sin(angle));
+    Vec2 spawn = center + dir * muzzleOff;
 
-  auto* bgo = new GameObject();
-  bgo->box.x = spawn.x - 8.0f;
-  bgo->box.y = spawn.y - 8.0f;
-  bgo->AddComponent(new Bullet(*bgo, angle, 700.0f, 34, 900.0f));
-  Game::GetInstance().GetState().AddObject(bgo);
+    auto* bgo = new GameObject();
+    bgo->box.x = spawn.x - 8.0f;
+    bgo->box.y = spawn.y - 8.0f;
 
-  cooldownState = 1;
-  cdTimer.Restart();
+    bool targetsPlayer = false;
+    if (auto chGO = character.lock()) {
+        if (auto* chComp = chGO->GetComponent<Character>()) {
+            // se o atirador NÃO for o player, a bala mira o player
+            targetsPlayer = (chComp != Character::player);
+        }
+    }
+
+    bgo->AddComponent(new Bullet(*bgo, angle, 700.0f, 34, 900.0f, targetsPlayer));
+    Game::GetInstance().GetState().AddObject(bgo);
+
+    cooldownState = 1;
+    cdTimer.Restart();
 }

@@ -9,6 +9,9 @@
 #include "InputManager.h"
 #include "Camera.h"
 #include "Zombie.h"
+#include "Collider.h"
+#include "Collision.h"
+#include "WaveSpawner.h"
 
 #include "Character.h"
 #include "PlayerController.h"
@@ -86,6 +89,14 @@ void State::LoadAssets() {
     Camera::GetInstance().Follow(playerGO);
     AddObject(playerGO);
   }
+
+ // WaveSpawner
+  {
+      auto* spGO = new GameObject();
+      auto* ws = new WaveSpawner(*spGO);
+      spGO->AddComponent(ws);
+      AddObject(spGO);
+  }
 }
 
 void State::Start() {
@@ -107,7 +118,7 @@ void State::Update(float dt) {
   }
 
   // Spawn de Zombie com SPACE (debug)
-  if (im.KeyPress(SDLK_SPACE)) {
+  /*if (im.KeyPress(SDLK_SPACE)) {
     int worldX = im.GetMouseX() + (int)Camera::GetInstance().pos.x;
     int worldY = im.GetMouseY() + (int)Camera::GetInstance().pos.y;
     auto* go = new GameObject();
@@ -116,11 +127,37 @@ void State::Update(float dt) {
     auto* zc = new Zombie(*go);
     go->AddComponent(zc);
     AddObject(go);
-  }
+  } */
 
   for (size_t i = 0; i < objectArray.size(); ++i) {
     objectArray[i]->Update(dt);
   }
+
+ //DETECÇÃO DE COLISÕES 
+for (size_t i = 0; i < objectArray.size(); ++i) {
+    GameObject* goA = objectArray[i].get();
+    if (goA->IsDead()) continue;   
+
+    auto* colA = goA->GetComponent<Collider>();
+    if (!colA) continue;
+
+    for (size_t j = i + 1; j < objectArray.size(); ++j) {
+        GameObject* goB = objectArray[j].get();
+        if (goB->IsDead()) continue;  
+
+        auto* colB = goB->GetComponent<Collider>();
+        if (!colB) continue;
+
+        float angleA = (float)(goA->angleDeg * M_PI / 180.0);
+        float angleB = (float)(goB->angleDeg * M_PI / 180.0);
+
+        if (IsColliding(colA->box, colB->box, angleA, angleB)) {
+            goA->NotifyCollision(*goB);
+            goB->NotifyCollision(*goA);
+        }
+    }
+}
+
 
   for (size_t i = 0; i < objectArray.size();) {
     if (objectArray[i]->IsDead()) {
