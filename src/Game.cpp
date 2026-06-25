@@ -8,6 +8,11 @@
 #include "Resources.h"
 #include "InputManager.h"
 #include "Camera.h"
+#include <stdexcept>
+#include <iostream>
+#include <ctime>
+#include <cstdlib>
+
 
 #include <stdexcept>
 #include <iostream>
@@ -27,6 +32,8 @@ Game::Game(const std::string& title, int width, int height)
     throw std::runtime_error("Game já inicializado (Singleton).");
   }
   instance = this;
+
+  std::srand((unsigned)std::time(nullptr));
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0) {
     std::cerr << "SDL_Init: " << SDL_GetError() << "\n";
