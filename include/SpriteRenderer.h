@@ -1,24 +1,32 @@
-#pragma once
+#ifndef SPRITERENDERER_H
+#define SPRITERENDERER_H
+
 #include "Component.h"
 #include "Sprite.h"
+#include <string>
 
-class SpriteRenderer : public Component { 
-private:
-    Sprite sprite;
-
+class SpriteRenderer : public Component {
 public:
-    SpriteRenderer(GameObject& associated);
-    SpriteRenderer(GameObject& associated, std::string file, int frameCountW = 1, int frameCountH = 1);
+  explicit SpriteRenderer(GameObject& associated);
+  SpriteRenderer(GameObject& associated, const std::string& file, int frameCountW = 1, int frameCountH = 1);
 
-    void SetScale(float scaleX, float scaleY);
-    Vec2 GetScale() const;
+  void Open(const std::string& file);
+  void SetFrameCount(int frameCountW, int frameCountH);
+  void SetFrame(int frame);
+  void SetFrame(int frame, SDL_RendererFlip flip);
 
-    void Open(std::string file);
-    void SetFrameCount(int frameCountW, int frameCountH);
-    void SetFrame(int frame); 
+  void SetScale(float scaleX, float scaleY);
 
-    void Update(float dt) override; 
-    void Render() override; 
-    bool cameraFollower;
-    void SetCameraFollower(bool follow);
+  void Update(float dt) override;
+  void Render() override;
+
+  Sprite& GetSprite() { return sprite; }
+
+  void SetCameraFollower(bool v) { cameraFollower = v; }
+
+private:
+  Sprite sprite;
+  bool cameraFollower;
 };
+
+#endif

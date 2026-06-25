@@ -1,23 +1,30 @@
-#pragma once
-#include <string>
-#include <unordered_map>
+#ifndef ANIMATOR_H
+#define ANIMATOR_H
+
 #include "Component.h"
 #include "Animation.h"
+#include <unordered_map>
+#include <string>
 
-class Animator : public Component { // herda de Component [cite: 745]
-private:
-    std::unordered_map<std::string, Animation> animations; // [cite: 755-757]
-    int frameStart, frameEnd; // [cite: 758-759]
-    float frameTime; // [cite: 760]
-    int currentFrame; // [cite: 761]
-    float timeElapsed; // [cite: 762]
-
+class Animator : public Component {
 public:
-    Animator(GameObject& associated); // [cite: 746-748]
+  explicit Animator(GameObject& associated);
 
-    void AddAnimation(std::string name, Animation anim); // [cite: 753-754]
-    void SetAnimation(std::string name); // [cite: 751-752]
+  void Update(float dt) override;
+  void Render() override;
 
-    void Update(float dt) override; // [cite: 749]
-    void Render() override; // [cite: 750]
+  void SetAnimation(const std::string& name);
+  void AddAnimation(const std::string& name, const Animation& anim);
+
+  std::string current; 
+
+private:
+  std::unordered_map<std::string, Animation> animations;
+  int   frameStart;
+  int   frameEnd;
+  float frameTime;
+  int   currentFrame;
+  float timeElapsed;
 };
+
+#endif

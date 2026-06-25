@@ -1,12 +1,16 @@
-#pragma once
+#ifndef ANIMATION_H
+#define ANIMATION_H
 
-class Animation {
-public:
-    int frameStart;
-    int frameEnd;
-    float frameTime;
+#define INCLUDE_SDL
+#include "SDL_include.h"
 
-    Animation() : frameStart(0), frameEnd(0), frameTime(0) {}
-    Animation(int frameStart, int frameEnd, float frameTime) 
-        : frameStart(frameStart), frameEnd(frameEnd), frameTime(frameTime) {}
+struct Animation {
+  int   frameStart;
+  int   frameEnd;
+  float frameTime;
+  SDL_RendererFlip flip;
+
+  Animation(int fs=0, int fe=0, float ft=0.0f, SDL_RendererFlip f = SDL_FLIP_NONE)
+    : frameStart(fs), frameEnd(fe), frameTime(ft), flip(f) {}
 };
+#endif

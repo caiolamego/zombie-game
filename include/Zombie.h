@@ -1,16 +1,26 @@
-#pragma once
+#ifndef ZOMBIE_H
+#define ZOMBIE_H
+
 #include "Component.h"
 #include "Sound.h"
+#include "Timer.h"
 
-class Zombie : public Component { // herda de Component [cite: 724]
-private:
-    int hitpoints; // [cite: 724]
-
+class Zombie : public Component {
 public:
-    Sound deathSound;
-    Zombie(GameObject& associated); // [cite: 724]
-    void Damage(int damage); // [cite: 724]
+  explicit Zombie(GameObject& associated);
 
-    void Update(float dt) override; // [cite: 724]
-    void Render() override; // [cite: 724]
+  void Damage(int damage);
+  void Update(float dt) override;
+  void Render() override;
+
+private:
+  int   hitpoints;
+  bool  died;
+  bool  hit;
+  Sound deathSound;
+  Sound hitSound;
+  Timer hitTimer;
+  Timer deathTimer;
 };
+
+#endif

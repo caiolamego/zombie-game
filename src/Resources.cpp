@@ -1,72 +1,73 @@
+#define INCLUDE_SDL
+#define INCLUDE_SDL_IMAGE
+#define INCLUDE_SDL_MIXER
+#include "SDL_include.h"
+
 #include "Resources.h"
 #include "Game.h"
 #include <iostream>
 
-// Inicialização das tabelas estáticas
 std::unordered_map<std::string, SDL_Texture*> Resources::imageTable;
-std::unordered_map<std::string, Mix_Music*> Resources::musicTable;
-std::unordered_map<std::string, Mix_Chunk*> Resources::soundTable;
+std::unordered_map<std::string, Mix_Music*>   Resources::musicTable;
+std::unordered_map<std::string, Mix_Chunk*>   Resources::soundTable;
 
-SDL_Texture* Resources::GetImage(std::string file) {
-    auto it = imageTable.find(file);
-    if (it != imageTable.end()) {
-        return it->second; // Se já existe na memória, retorna o ponteiro
-    }
-    
-    // Se não existe, carrega na memória
-    SDL_Texture* texture = IMG_LoadTexture(Game::GetInstance().GetRenderer(), file.c_str());
-    if (texture == nullptr) {
-        std::cout << "Erro ao carregar imagem: " << file << " - " << SDL_GetError() << std::endl;
-    }
-    imageTable[file] = texture; // Salva na tabela
-    return texture;
+SDL_Texture* Resources::GetImage(const std::string& file) {
+  auto it = imageTable.find(file);
+  if (it != imageTable.end()) return it->second;
+
+  SDL_Renderer* r = Game::GetInstance().GetRenderer();
+  SDL_Texture* t = IMG_LoadTexture(r, file.c_str());
+  if (!t) {
+    std::cerr << "Resources::GetImage falhou: " << IMG_GetError() << " (" << file << ")\n";
+    return nullptr;
+  }
+  imageTable[file] = t;
+  return t;
 }
 
 void Resources::ClearImages() {
-    for (auto& par : imageTable) {
-        SDL_DestroyTexture(par.second); // Desaloca da VRAM
-    }
-    imageTable.clear();
+  for (auto& kv : imageTable) {
+    if (kv.second) SDL_DestroyTexture(kv.second);
+  }
+  imageTable.clear();
 }
 
-Mix_Music* Resources::GetMusic(std::string file) {
-    auto it = musicTable.find(file);
-    if (it != musicTable.end()) {
-        return it->second;
-    }
-    
-    Mix_Music* music = Mix_LoadMUS(file.c_str());
-    if (music == nullptr) {
-        std::cout << "Erro ao carregar música: " << file << " - " << SDL_GetError() << std::endl;
-    }
-    musicTable[file] = music;
-    return music;
+Mix_Music* Resources::GetMusic(const std::string& file) {
+  auto it = musicTable.find(file);
+  if (it != musicTable.end()) return it->second;
+
+  Mix_Music* m = Mix_LoadMUS(file.c_str());
+  if (!m) {
+    std::cerr << "Resources::GetMusic falhou: " << Mix_GetError() << " (" << file << ")\n";
+    return nullptr;
+  }
+  musicTable[file] = m;
+  return m;
 }
 
 void Resources::ClearMusics() {
-    for (auto& par : musicTable) {
-        Mix_FreeMusic(par.second);
-    }
-    musicTable.clear();
+  for (auto& kv : musicTable) {
+    if (kv.second) Mix_FreeMusic(kv.second);
+  }
+  musicTable.clear();
 }
 
-Mix_Chunk* Resources::GetSound(std::string file) {
-    auto it = soundTable.find(file);
-    if (it != soundTable.end()) {
-        return it->second;
-    }
-    
-    Mix_Chunk* chunk = Mix_LoadWAV(file.c_str());
-    if (chunk == nullptr) {
-        std::cout << "Erro ao carregar som: " << file << " - " << SDL_GetError() << std::endl;
-    }
-    soundTable[file] = chunk;
-    return chunk;
+Mix_Chunk* Resources::GetSound(const std::string& file) {
+  auto it = soundTable.find(file);
+  if (it != soundTable.end()) return it->second;
+
+  Mix_Chunk* c = Mix_LoadWAV(file.c_str());
+  if (!c) {
+    std::cerr << "Resources::GetSound falhou: " << Mix_GetError() << " (" << file << ")\n";
+    return nullptr;
+  }
+  soundTable[file] = c;
+  return c;
 }
 
 void Resources::ClearSounds() {
-    for (auto& par : soundTable) {
-        Mix_FreeChunk(par.second);
-    }
-    soundTable.clear();
+  for (auto& kv : soundTable) {
+    if (kv.second) Mix_FreeChunk(kv.second);
+  }
+  soundTable.clear();
 }

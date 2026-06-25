@@ -1,38 +1,42 @@
-#pragma once
+#ifndef CHARACTER_H
+#define CHARACTER_H
+
 #include "Component.h"
 #include "Timer.h"
 #include "Vec2.h"
-#include <string>
 #include <queue>
 #include <memory>
+#include <string>
 
 class Character : public Component {
 public:
-    enum class CommandType { MOVE, SHOOT };
+  enum class CommandType { MOVE, SHOOT };
+  struct Command {
+    CommandType type;
+    Vec2 pos;
+    Command(CommandType t = CommandType::MOVE, float x=0, float y=0)
+    : type(t), pos(x,y) {}
+  };
 
-    class Command {
-    public:
-        CommandType type;
-        Vec2 pos;
-        Command(CommandType t, float x, float y) : type(t), pos(x, y) {}
-    };
+  explicit Character(GameObject& associated, const std::string& spritePath);
+  ~Character();
 
-    Character(GameObject& associated, const std::string& sprite);
-    ~Character();
+  void Start() override;
+  void Update(float dt) override;
+  void Render() override {}
 
-    void Start() override;
-    void Update(float dt) override;
-    void Render() override;
-    void Issue(const Command& task);
+  void Issue(const Command& task);
 
-    static Character* player;
+  static Character* player;
 
 private:
-    std::weak_ptr<GameObject> gun;
-    std::queue<Command> taskQueue;
-    Vec2 speed;
-    float linearSpeed;
-    int hp;
-    Timer deathTimer;
-    std::string spritePath;
+  std::weak_ptr<GameObject> gun;
+  std::queue<Command> taskQueue;
+  Vec2  speed;
+  float linearSpeed;
+  int   hp;
+  Timer deathTimer;
+  std::string spritePath;
 };
+
+#endif

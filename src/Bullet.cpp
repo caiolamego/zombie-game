@@ -3,29 +3,29 @@
 #include "GameObject.h"
 #include <cmath>
 
-Bullet::Bullet(GameObject& associated, float angle, float speed, int dmg, float maxDistance) 
-    : Component(associated), speedVec(std::cos(angle)*speed, std::sin(angle)*speed), 
-      distanceLeft(maxDistance), damage(dmg) {
-      
-    auto* sr = new SpriteRenderer(associated, "recursos/img/Bullet.png", 1, 1);
-    sr->SetScale(0.6f, 0.6f); 
-    associated.AddComponent(sr);
-    associated.angleDeg = angle * 180.0 / M_PI;
+Bullet::Bullet(GameObject& associated, float angle, float speed, int dmg, float maxDistance)
+: Component(associated),
+  speedVec(std::cos(angle)*speed, std::sin(angle)*speed),
+  distanceLeft(maxDistance),
+  damage(dmg) {
+
+  auto* sr = new SpriteRenderer(associated, "recursos/img/Bullet.png", 1, 1);
+  sr->SetScale(0.6f, 0.6f); 
+  associated.AddComponent(sr);
+
+  associated.angleDeg = angle * 180.0 / M_PI;
 }
 
 void Bullet::Update(float dt) {
-    float dx = speedVec.x * dt;
-    float dy = speedVec.y * dt;
-    
-    associated.box.x += dx;
-    associated.box.y += dy;
-    
-    float d = std::sqrt(dx*dx + dy*dy);
-    distanceLeft -= d;
-    
-    if (distanceLeft <= 0.0f) {
-        associated.RequestDelete();
-    }
-}
+  float dx = speedVec.x * dt;
+  float dy = speedVec.y * dt;
 
-void Bullet::Render() {}
+  associated.box.x += dx;
+  associated.box.y += dy;
+
+  float d = std::sqrt(dx*dx + dy*dy);
+  distanceLeft -= d;
+  if (distanceLeft <= 0.0f) {
+    associated.RequestDelete();
+  }
+}

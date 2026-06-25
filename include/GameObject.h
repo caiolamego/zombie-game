@@ -1,28 +1,48 @@
-#pragma once
+#ifndef GAMEOBJECT_H
+#define GAMEOBJECT_H
+
 #include <vector>
 #include "Rect.h"
-#include "Component.h"
+
+class Component;
 
 class GameObject {
-private:
-    std::vector<Component*> components;
-    bool isDead;
-    bool started;
-
 public:
-    Rect box;
-    double angleDeg;
+  GameObject();
+  ~GameObject();
 
-    GameObject();
-    ~GameObject();
+  void Start();
+  void Update(float dt);
+  void Render();
 
-    void Update(float dt);
-    void Start();
-    void Render();
-    bool IsDead();
-    void RequestDelete();
-    void AddComponent(Component* cpt);
-    void RemoveComponent(Component* cpt);
+  bool IsDead() const { return isDead; }
+  void RequestDelete() { isDead = true; }
 
-    #include "GetComponent.h"
+  void AddComponent(Component* cpt);
+  void RemoveComponent(Component* cpt);
+
+  template <typename T>
+  T* GetComponent();
+
+  Rect box;
+  double angleDeg; 
+
+private:
+  std::vector<Component*> components;
+  bool isDead;
+  bool started;
 };
+
+#include <type_traits>
+#include <typeinfo>
+#include "Component.h"
+
+template <typename T>
+T* GameObject::GetComponent() {
+  for (auto* c : components) {
+    if (auto* casted = dynamic_cast<T*>(c)) return casted;
+  }
+  return nullptr;
+}
+
+#endif

@@ -1,96 +1,111 @@
-#include "Game.h"
+#define INCLUDE_SDL
 #define INCLUDE_SDL_IMAGE
 #define INCLUDE_SDL_MIXER
 #include "SDL_include.h"
-#include <iostream>
+
+#include "Game.h"
+#include "State.h"
 #include "Resources.h"
 #include "InputManager.h"
+#include "Camera.h"
+
+#include <stdexcept>
+#include <iostream>
 
 Game* Game::instance = nullptr;
 
-Game& Game::GetInstance() {
-    if (instance == nullptr) {
-        instance = new Game("Caio - Matricula: 222031045", 1200, 900); 
-    }
-    return *instance;
+Game& Game::GetInstance(const std::string& title, int width, int height) {
+  if (!instance) {
+    instance = new Game(title, width, height);
+  }
+  return *instance;
 }
 
-Game::Game(std::string title, int width, int height) {
-    if (instance != nullptr) {
-        std::cout << "Erro lógico: Multiplas instâncias de Game." << std::endl;
-        return;
-    }
-    instance = this;
+Game::Game(const std::string& title, int width, int height)
+: window(nullptr), renderer(nullptr), state(nullptr), frameStart(0), dt(0.0f) {
+  if (instance) {
+    throw std::runtime_error("Game já inicializado (Singleton).");
+  }
+  instance = this;
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0) {
-        std::cout << "Erro ao inicializar SDL: " << SDL_GetError() << std::endl;
-    }
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0) {
+    std::cerr << "SDL_Init: " << SDL_GetError() << "\n";
+    throw std::runtime_error("Falha ao inicializar SDL.");
+  }
 
-    if (IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF) == 0) {
-        std::cout << "Erro ao inicializar SDL_Image: " << SDL_GetError() << std::endl;
-    }
+  const int imgFlags = IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF;
+  if ((IMG_Init(imgFlags) & imgFlags) == 0) {
+    std::cerr << "IMG_Init: " << IMG_GetError() << "\n";
+    throw std::runtime_error("Falha ao inicializar SDL_image.");
+  }
 
-    if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024) != 0) {
-        std::cout << "Erro ao inicializar SDL_Mixer: " << SDL_GetError() << std::endl;
-    }
-    Mix_AllocateChannels(32);
+  const int mixFlags = MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_MOD;
+  if ((Mix_Init(mixFlags) & mixFlags) == 0) {
+    std::cerr << "Mix_Init: " << Mix_GetError() << "\n";
+  }
+  if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024) != 0) {
+    std::cerr << "Mix_OpenAudio: " << Mix_GetError() << "\n";
+    throw std::runtime_error("Falha ao abrir áudio.");
+  }
+  Mix_AllocateChannels(32);
 
-    window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0);
-    if (window == nullptr) {
-        std::cout << "Erro ao criar janela: " << SDL_GetError() << std::endl;
-    }
+  window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0);
+  if (!window) {
+    std::cerr << "SDL_CreateWindow: " << SDL_GetError() << "\n";
+    throw std::runtime_error("Falha ao criar janela.");
+  }
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == nullptr) {
-        std::cout << "Erro ao criar renderizador: " << SDL_GetError() << std::endl;
-    }
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+  if (!renderer) {
+    std::cerr << "SDL_CreateRenderer: " << SDL_GetError() << "\n";
+    throw std::runtime_error("Falha ao criar renderer.");
+  }
 
-    state = new State();
+  state = new State();
+
+  frameStart = SDL_GetTicks();
+  dt = 0.0f;
 }
 
 Game::~Game() {
-    delete state;
-    Mix_CloseAudio();
-    Mix_Quit();
-    IMG_Quit(); 
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window); 
-    SDL_Quit();
+  delete state;
+
+  Mix_CloseAudio();
+  Mix_Quit();
+  IMG_Quit();
+
+  if (renderer) { SDL_DestroyRenderer(renderer); renderer = nullptr; }
+  if (window)   { SDL_DestroyWindow(window);     window   = nullptr; }
+
+  SDL_Quit();
 }
 
-State& Game::GetState() {
-    return *state;
+State& Game::GetState() const {
+  return *state;
 }
 
-SDL_Renderer* Game::GetRenderer() {
-    return renderer;
+void Game::CalculateDeltaTime() {
+  unsigned int current = SDL_GetTicks();
+  unsigned int diff = current - frameStart;
+  dt = (float)diff / 1000.0f;
+  frameStart = current;
 }
 
 void Game::Run() {
-    state->LoadAssets();
+  state->Start();
 
-    while (!state->QuitRequested()) {
-        CalculateDeltaTime(); // Calcula o tempo que passou
-        
-        InputManager::GetInstance().Update(); // Atualiza teclado e mouse
-        
-        state->Update(dt); // Agora o update recebe o tempo real
-        
-        SDL_RenderClear(renderer);
-        state->Render();
-        SDL_RenderPresent(renderer);
-        
-        SDL_Delay(33);
-    }
-    Resources::ClearImages();
-    Resources::ClearMusics();
-    Resources::ClearSounds();
-}
+  while (!state->QuitRequested()) {
+    CalculateDeltaTime();
+    InputManager::GetInstance().Update();
 
+    state->Update(dt);
+    state->Render();
 
-void Game::CalculateDeltaTime() {
-    unsigned int current = SDL_GetTicks();
-    unsigned int diff = current - frameStart;
-    dt = (float)diff / 1000.0f;
-    frameStart = current;
+    SDL_RenderPresent(renderer);
+    SDL_Delay(33);
+  }
+
+  Resources::ClearImages();
+  Resources::ClearMusics();
+  Resources::ClearSounds();
 }

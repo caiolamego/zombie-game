@@ -1,3 +1,4 @@
+
 /* - Como usar esse arquivo:
  *
  * Onde quiser adicionar, por exemplo, SDL_image e SDL_mixer em um arquivo, faça o seguinte e
@@ -8,6 +9,7 @@
  * #include "SDL_include.h"
  *
 */
+
 
 /************************************************
 *					SDL.h						*
@@ -79,3 +81,21 @@
 	#endif
 	#undef INCLUDE_SDL_TTF 
 #endif // INCLUDE_SDL_TTF
+
+
+/************************************************
+*				  SDL_net.h						*
+*************************************************/
+#ifdef INCLUDE_SDL_NET 
+	#ifdef _WIN32
+		#include <SDL2/SDL_net.h>
+	#elif __APPLE__
+		#include "TargetConditionals.h"
+		#include <SDL2/SDL_net.h>
+	#elif __linux__
+		#include <SDL2/SDL_net.h>
+	#else
+		#error "Unknown compiler"
+	#endif
+	#undef INCLUDE_SDL_NET 
+#endif // INCLUDE_SDL_NET

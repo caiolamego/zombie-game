@@ -1,18 +1,24 @@
-#pragma once
-#define INCLUDE_SDL_MIXER
-#include "SDL_include.h"
+#ifndef SOUND_H
+#define SOUND_H
+
 #include <string>
 
+typedef struct Mix_Chunk Mix_Chunk;
+
 class Sound {
-private:
-    Mix_Chunk* chunk;
-    int channel;
 public:
-    Sound();
-    Sound(std::string file);
-    ~Sound();
-    void Play(int times = 1);
-    void Stop();
-    void Open(std::string file);
-    bool IsOpen();
+  Sound();
+  explicit Sound(const std::string& file);
+  ~Sound();
+
+  void Play(int times = 1);
+  void Stop();
+  void Open(const std::string& file);
+  bool IsOpen() const;
+
+private:
+  Mix_Chunk* chunk;
+  int channel; 
 };
+
+#endif

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef INPUTMANAGER_H
+#define INPUTMANAGER_H
+
 #define INCLUDE_SDL
 #include "SDL_include.h"
 #include <unordered_map>
@@ -12,33 +14,36 @@
 
 class InputManager {
 public:
-    static InputManager& GetInstance();
+  static InputManager& GetInstance();
 
-    void Update(); 
-    bool KeyPress(int key);
-    bool KeyRelease(int key);
-    bool IsKeyDown(int key);
+  void Update(); // ler eventos e atualizar estados (chamar uma vez por frame)
+  bool KeyPress(int key);
+  bool KeyRelease(int key);
+  bool IsKeyDown(int key);
 
-    bool MousePress(int button);
-    bool MouseRelease(int button);
-    bool IsMouseDown(int button);
+  bool MousePress(int button);
+  bool MouseRelease(int button);
+  bool IsMouseDown(int button);
 
-    int GetMouseX() const { return mouseX; }
-    int GetMouseY() const { return mouseY; }
-    bool QuitRequested() const { return quitRequested; }
+  int GetMouseX() const { return mouseX; }
+  int GetMouseY() const { return mouseY; }
+
+  bool QuitRequested() const { return quitRequested; }
 
 private:
-    InputManager();
-    ~InputManager();
+  InputManager();
+  ~InputManager();
 
-    std::unordered_map<int, bool> keyState;
-    std::unordered_map<int, int>  keyUpdate;
+  std::unordered_map<int, bool> keyState;
+  std::unordered_map<int, int>  keyUpdate;
 
-    bool mouseState[6];
-    int  mouseUpdate[6];
+  bool mouseState[6];
+  int  mouseUpdate[6];
 
-    bool quitRequested;
-    int  updateCounter;
-    int  mouseX;
-    int  mouseY;
+  bool quitRequested;
+  int  updateCounter;
+  int  mouseX;
+  int  mouseY;
 };
+
+#endif
