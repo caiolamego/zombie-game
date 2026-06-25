@@ -10,6 +10,9 @@ public:
     SpriteRenderer(GameObject& associated);
     SpriteRenderer(GameObject& associated, std::string file, int frameCountW = 1, int frameCountH = 1);
 
+    void SetScale(float scaleX, float scaleY);
+    Vec2 GetScale() const;
+
     void Open(std::string file);
     void SetFrameCount(int frameCountW, int frameCountH);
     void SetFrame(int frame); 

@@ -8,6 +8,11 @@ public:
     Vec2();
     Vec2(float x, float y);
 
+    Vec2 operator+(const Vec2& rhs) const;
+    Vec2 operator-(const Vec2& rhs) const;
+    Vec2 operator*(const float rhs) const;
+    Vec2 Normalized() const;
+
     Vec2 Add(const Vec2& other) const;
     Vec2 Sub(const Vec2& other) const;
     Vec2 Mul(const float scalar) const;

@@ -1,7 +1,6 @@
 #include "GameObject.h"
 
-GameObject::GameObject() : isDead(false) { 
-}
+GameObject::GameObject() : isDead(false), started(false), box(), angleDeg(0.0) {}
 
 GameObject::~GameObject() {
     for (int i = components.size() - 1; i >= 0; i--) {
@@ -32,6 +31,9 @@ void GameObject::RequestDelete() {
 
 void GameObject::AddComponent(Component* cpt) {
     components.push_back(cpt);
+    if (started) {
+        cpt->Start();
+    }
 }
 
 void GameObject::RemoveComponent(Component* cpt) {
@@ -41,4 +43,11 @@ void GameObject::RemoveComponent(Component* cpt) {
             break;
         }
     }
+}
+
+void GameObject::Start() {
+    for (size_t i = 0; i < components.size(); ++i) {
+        components[i]->Start();
+    }
+    started = true;
 }

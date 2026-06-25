@@ -5,12 +5,25 @@
 #include <iostream>
 #include "Resources.h"
 
-Sprite::Sprite() : texture(nullptr), frameCountW(1), frameCountH(1) {
+Sprite::Sprite() : texture(nullptr), frameCountW(1), frameCountH(1), scale(1.0f, 1.0f), flip(SDL_FLIP_NONE) {
 }
 
 Sprite::Sprite(std::string file, int frameCountW, int frameCountH) 
     : texture(nullptr), frameCountW(frameCountW), frameCountH(frameCountH) {
     Open(file);
+}
+
+void Sprite::SetScale(float scaleX, float scaleY) {
+    scale.x = scaleX;
+    scale.y = scaleY;
+}
+Vec2 Sprite::GetScale() const { return scale; }
+
+void Sprite::SetFlip(bool flipH, bool flipV) {
+    int f = SDL_FLIP_NONE;
+    if (flipH) f |= SDL_FLIP_HORIZONTAL;
+    if (flipV) f |= SDL_FLIP_VERTICAL;
+    flip = (SDL_RendererFlip)f;
 }
 
 void Sprite::Open(std::string file) {
@@ -30,14 +43,17 @@ void Sprite::SetClip(int x, int y, int w, int h) {
     clipRect.h = h;
 }
 
-void Sprite::Render(int x, int y) {
+void Sprite::Render(int x, int y, float angle) {
     SDL_Rect dstrect;
     dstrect.x = x;
     dstrect.y = y;
-    dstrect.w = clipRect.w;
-    dstrect.h = clipRect.h;
+    dstrect.w = (int)(clipRect.w * scale.x);
+    dstrect.h = (int)(clipRect.h * scale.y);
     
-    SDL_RenderCopy(Game::GetInstance().GetRenderer(), texture, &clipRect, &dstrect);
+    // Converte ângulo de radianos para graus como a SDL pede
+    double angleDeg = angle * 180.0 / M_PI;
+    
+    SDL_RenderCopyEx(Game::GetInstance().GetRenderer(), texture, &clipRect, &dstrect, angleDeg, nullptr, flip);
 }
 
 void Sprite::SetFrameCount(int frameCountW, int frameCountH) {

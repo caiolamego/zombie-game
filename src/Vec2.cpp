@@ -1,4 +1,5 @@
 #include "Vec2.h"
+#include <cmath>
 
 Vec2::Vec2() : x(0), y(0) {} // Construtor inicializando em zero
 Vec2::Vec2(float x, float y) : x(x), y(y) {}
@@ -26,4 +27,25 @@ void Vec2::Rotate(float angle) {
     float newY = y * std::cos(angle) + x * std::sin(angle); // 
     x = newX;
     y = newY;
+}
+
+Vec2 Vec2::operator+(const Vec2& rhs) const {
+    return Vec2(x + rhs.x, y + rhs.y);
+}
+
+// Ensina o C++ a subtrair dois Vec2 (A Arma precisa disso para mirar)
+Vec2 Vec2::operator-(const Vec2& rhs) const {
+    return Vec2(x - rhs.x, y - rhs.y);
+}
+
+// Ensina o C++ a multiplicar um vetor por um número (Aceleração)
+Vec2 Vec2::operator*(const float rhs) const {
+    return Vec2(x * rhs, y * rhs);
+}
+
+// Retorna o vetor com tamanho 1 (Útil para calcular apenas a direção)
+Vec2 Vec2::Normalized() const {
+    float mag = std::sqrt(x * x + y * y);
+    if (mag == 0) return Vec2(0, 0); // Evita divisão por zero
+    return Vec2(x / mag, y / mag);
 }
